@@ -1,12 +1,12 @@
-name: Fetch Weibo Hot
+name: Fetch Weibo Hot (write real data)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # 每30分钟（UTC）跑一次；TianAPI热搜约每30分钟更新
-  workflow_dispatch:          # 允许你在Actions页面手动触发一次
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 permissions:
-  contents: write             # 允许推送更新
+  contents: write
 
 jobs:
   fetch:
@@ -14,14 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch top 20 from TianAPI
+      - name: Fetch top 20 from TianAPI and write REAL data
         run: |
-          mkdir -p out
-          curl -s "https://apis.tianapi.com/weibohot/index?key=${{ secrets.TIANAPI_KEY }}&num=20" -o out/hot.json
-
-      - name: Move file to repo root
-        run: |
-          mv out/hot.json hot.json
+          curl -s "https://apis.tianapi.com/weibohot/index?key=${{ secrets.TIANAPI_KEY }}&num=20" -o hot.json
+          # 可加一行校验返回码是否为200
 
       - name: Commit & push if changed
         run: |
