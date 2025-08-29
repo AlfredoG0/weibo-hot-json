@@ -1,0 +1,34 @@
+name: Fetch Weibo Hot
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 每30分钟（UTC）跑一次；TianAPI热搜约每30分钟更新
+  workflow_dispatch:          # 允许你在Actions页面手动触发一次
+
+permissions:
+  contents: write             # 允许推送更新
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch top 20 from TianAPI
+        run: |
+          mkdir -p out
+          curl -s "https://apis.tianapi.com/weibohot/index?key=${{ secrets.TIANAPI_KEY }}&num=20" -o out/hot.json
+
+      - name: Move file to repo root
+        run: |
+          mv out/hot.json hot.json
+
+      - name: Commit & push if changed
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add hot.json
+            git commit -m "chore: update hot.json [skip ci]"
+            git push
+          fi
