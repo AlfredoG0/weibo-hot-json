@@ -2,11 +2,11 @@ name: Fetch Weibo Hot (write real data)
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"   # 可留着做轮询；UTC 每30分钟
+  workflow_dispatch:          # 关键：允许你立刻手动运行
 
 permissions:
-  contents: write
+  contents: write             # 关键：允许提交 hot.json 到仓库
 
 jobs:
   fetch:
@@ -16,8 +16,10 @@ jobs:
 
       - name: Fetch top 20 from TianAPI and write REAL data
         run: |
+          set -e
           curl -s "https://apis.tianapi.com/weibohot/index?key=${{ secrets.TIANAPI_KEY }}&num=20" -o hot.json
-          # 可加一行校验返回码是否为200
+          # 可选：简单校验返回格式（不装 jq 的情况下）
+          # grep -q '"code":' hot.json || (echo "Invalid response"; cat hot.json; exit 1)
 
       - name: Commit & push if changed
         run: |
